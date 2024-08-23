@@ -39,15 +39,19 @@ public class BeerController {
 	}
 
 	@GetMapping
-	public List<Beer> listBeers() {
+	public ResponseEntity<List<Beer>> listBeers() {
 		log.debug("Using listBeers method - in BeerController");
-		return beerService.listBeers();
+		return new ResponseEntity<>(beerService.listBeers(), HttpStatus.OK);
 	}
 
 	@GetMapping("{beerId}")
-	public Beer getBeerById(@PathVariable("beerId") UUID id) {
+	public ResponseEntity<Beer> getBeerById(@PathVariable("beerId") UUID id) {
 		log.debug("Using getBeerById method - in BeerController");
-		return beerService.getBeerById(id);
+		Beer beer = beerService.getBeerById(id);
+		if (beer == null) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<>(beer, HttpStatus.OK);
 	}
 
 	@PutMapping("{beerId}")
