@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.UUID;
-
 @SpringBootTest
 class BeerControllerTest {
 
@@ -14,8 +12,13 @@ class BeerControllerTest {
 	BeerController controller;
 
 	@Test
+	void listBeers() {
+		System.out.println(controller.listBeers());
+	}
+
+	@Test
 	void getBeerById() {
-		Beer beer = controller.getBeerById(UUID.randomUUID());
+		Beer beer = controller.getBeerById(controller.listBeers().get(0).getId());
 		System.out.println(beer);
 	}
 }

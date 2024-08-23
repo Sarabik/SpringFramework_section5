@@ -1,30 +1,77 @@
 package com.springframework.section5.service;
 
 import com.springframework.section5.model.Beer;
+import com.springframework.section5.model.BeerStyle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 @Slf4j
 public class BeerServiceImpl implements BeerService {
-	@Override
-	public Beer getBeerById(final UUID id) {
 
-		log.debug("Get Beer Id in service was called");
+	private final Map<UUID, Beer> beerMap;
 
-		return Beer.builder()
-			.id(id)
+	public BeerServiceImpl() {
+		this.beerMap = new HashMap<>();
+
+		Beer beer1 = Beer.builder()
+			.id(UUID.randomUUID())
 			.version(1)
-			.beerName("name")
-			.upc("123")
+			.beerName("Galaxy Cat")
+			.beerStyle(BeerStyle.PALE_ALE)
+			.upc("12356")
 			.price(new BigDecimal("12.99"))
 			.quantityOnHand(122)
 			.createdDate(LocalDateTime.now())
 			.updateDate(LocalDateTime.now())
 			.build();
+
+		Beer beer2 = Beer.builder()
+			.id(UUID.randomUUID())
+			.version(1)
+			.beerName("Crank")
+			.beerStyle(BeerStyle.PALE_ALE)
+			.upc("12356222")
+			.price(new BigDecimal("11.99"))
+			.quantityOnHand(392)
+			.createdDate(LocalDateTime.now())
+			.updateDate(LocalDateTime.now())
+			.build();
+
+		Beer beer3 = Beer.builder()
+			.id(UUID.randomUUID())
+			.version(1)
+			.beerName("Sunshine City")
+			.beerStyle(BeerStyle.IPA)
+			.upc("12356")
+			.price(new BigDecimal("13.99"))
+			.quantityOnHand(144)
+			.createdDate(LocalDateTime.now())
+			.updateDate(LocalDateTime.now())
+			.build();
+
+		beerMap.put(beer1.getId(), beer1);
+		beerMap.put(beer2.getId(), beer2);
+		beerMap.put(beer3.getId(), beer3);
+	}
+
+	@Override
+	public List<Beer> listBeers() {
+		log.debug("Using listBeers method - in BeerServiceImpl");
+		return new ArrayList<>(beerMap.values());
+	}
+
+	@Override
+	public Beer getBeerById(final UUID id) {
+		log.debug("Using getBeerById method - in BeerServiceImpl");
+		return beerMap.get(id);
 	}
 }
