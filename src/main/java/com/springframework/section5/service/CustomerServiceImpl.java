@@ -2,6 +2,7 @@ package com.springframework.section5.service;
 
 import com.springframework.section5.model.Customer;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -55,5 +56,44 @@ public class CustomerServiceImpl implements CustomerService {
 	@Override
 	public Customer getCustomerById(final UUID id) {
 		return customerMap.get(id);
+	}
+
+	@Override
+	public Customer saveCustomer(final Customer customer) {
+		UUID id = UUID.randomUUID();
+		customer.setId(id);
+		customerMap.putIfAbsent(id, customer);
+		return customer;
+	}
+
+	@Override
+	public void updateCustomerById(final UUID id, final Customer customer) {
+		Customer existingCustomer = customerMap.get(id);
+		existingCustomer.setCustomerName(customer.getCustomerName());
+		existingCustomer.setVersion(customer.getVersion());
+		existingCustomer.setCreatedDate(customer.getCreatedDate());
+		existingCustomer.setLastModifiedDate(customer.getLastModifiedDate());
+	}
+
+	@Override
+	public void deleteCustomerById(final UUID id) {
+		customerMap.remove(id);
+	}
+
+	@Override
+	public void patchCustomerById(final UUID id, final Customer customer) {
+		Customer existingCustomer = customerMap.get(id);
+		if (StringUtils.hasText(customer.getCustomerName())) {
+			existingCustomer.setCustomerName(customer.getCustomerName());
+		}
+		if (customer.getCreatedDate() != null) {
+			existingCustomer.setCreatedDate(customer.getCreatedDate());
+		}
+		if (customer.getLastModifiedDate() != null) {
+			existingCustomer.setLastModifiedDate(customer.getLastModifiedDate());
+		}
+		if (customer.getVersion() != null) {
+			existingCustomer.setVersion(customer.getVersion());
+		}
 	}
 }
