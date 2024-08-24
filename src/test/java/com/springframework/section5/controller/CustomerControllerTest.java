@@ -1,10 +1,9 @@
 package com.springframework.section5.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.springframework.section5.model.Beer;
-import com.springframework.section5.service.BeerService;
-import com.springframework.section5.service.BeerServiceImpl;
+import com.springframework.section5.model.Customer;
+import com.springframework.section5.service.CustomerService;
+import com.springframework.section5.service.CustomerServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,93 +28,77 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(BeerController.class)
-class BeerControllerTest {
+@WebMvcTest(CustomerController.class)
+class CustomerControllerTest {
 
-	List<Beer> list;
-	Beer beer;
+	List<Customer> list;
+	Customer customer;
 
 	@BeforeEach
 	void setUp() {
-		list = new BeerServiceImpl().listBeers();
-		beer = list.get(0);
+		list = new CustomerServiceImpl().findAllCustomers();
+		customer = list.get(0);
 	}
 
 	@Autowired
 	MockMvc mockMvc;
 
+	@MockBean
+	CustomerService customerService;
+
 	@Autowired
 	ObjectMapper objectMapper;
 
-	@MockBean
-	BeerService beerService;
-
 	@Test
-	void testCreateNewBeer() throws Exception {
-
-		when(beerService.saveBeer(any(Beer.class))).thenReturn(beer);
+	void findAllCustomers() throws Exception {
+		when(customerService.findAllCustomers()).thenReturn(list);
 
 		mockMvc.perform(
-			post("/api/v1/beer")
+			get("/api/v1/customer")
 				.accept(MediaType.APPLICATION_JSON)
+		)
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.length()", is(3)));
+	}
+
+	@Test
+	void getCustomerById() throws Exception {
+		when(customerService.getCustomerById(customer.getId())).thenReturn(customer);
+
+		mockMvc.perform(
+			get("/api/v1/customer/" + customer.getId())
+				.accept(MediaType.APPLICATION_JSON)
+		)
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.id", is(customer.getId().toString())));
+	}
+
+	@Test
+	void handlePost() throws Exception {
+		when(customerService.saveCustomer(any(Customer.class))).thenReturn(customer);
+
+		mockMvc.perform(
+			post("/api/v1/customer")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(beer))
+				.content(objectMapper.writeValueAsString(customer))
 		)
 			.andExpect(status().isCreated())
 			.andExpect(header().exists("Location"));
 	}
 
 	@Test
-	void whenSuccessfullyGetBeerById() throws Exception {
-
-		when(beerService.getBeerById(beer.getId())).thenReturn(beer);
-
+	void updateCustomerById() throws Exception {
 		mockMvc.perform(
-				get("/api/v1/beer/" + beer.getId())
-				.accept(MediaType.APPLICATION_JSON)
-			)
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.id", is(beer.getId().toString())))
-			.andExpect(jsonPath("$.beerName", is(beer.getBeerName())));
-	}
-
-	@Test
-	void whenBeerByIdNotFound() throws Exception {
-
-		mockMvc.perform(
-				get("/api/v1/beer/" + UUID.randomUUID())
-				.accept(MediaType.APPLICATION_JSON)
-			)
-			.andExpect(status().isNotFound());
-	}
-
-	@Test
-	void whenSuccessfullyGetListOfBeers() throws Exception {
-
-		when(beerService.listBeers()).thenReturn(list);
-
-		mockMvc.perform(
-			get("/api/v1/beer")
-				.accept(MediaType.APPLICATION_JSON)
-			)
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.length()", is(3)));
-
-	}
-
-	@Test
-	void updateBeerById() throws Exception {
-		mockMvc.perform(
-			put("/api/v1/beer/" + beer.getId())
+			put("/api/v1/customer/" + customer.getId())
 				.accept(MediaType.APPLICATION_JSON)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(beer))
+				.content(objectMapper.writeValueAsString(customer))
 		)
 			.andExpect(status().isNoContent());
 
-		verify(beerService, times(1))
-							.updateBeerById(any(UUID.class), any(Beer.class));
+		verify(customerService, times(1))
+						.updateCustomerById(any(UUID.class), any(Customer.class));
 	}
 }
