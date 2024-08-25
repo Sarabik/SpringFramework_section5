@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -21,22 +20,24 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/customer")
 public class CustomerController {
+
+	public static final String CUSTOMER_PATH = "/api/v1/customer";
+	public static final String CUSTOMER_PATH_ID = CUSTOMER_PATH + "/{customerId}";
 
 	private final CustomerService customerService;
 
-	@GetMapping
+	@GetMapping(CUSTOMER_PATH)
 	public List<Customer> findAllCustomers() {
 		return customerService.findAllCustomers();
 	}
 
-	@GetMapping("{customerId}")
+	@GetMapping(CUSTOMER_PATH_ID)
 	public Customer getCustomerById(@PathVariable("customerId") final UUID id) {
 		return customerService.getCustomerById(id);
 	}
 
-	@PostMapping
+	@PostMapping(CUSTOMER_PATH)
 	public ResponseEntity<String> handlePost(@RequestBody Customer customer) {
 		Customer savedCustomer = customerService.saveCustomer(customer);
 
@@ -46,7 +47,7 @@ public class CustomerController {
 		return new ResponseEntity<>(headers, HttpStatus.CREATED);
 	}
 
-	@PutMapping("{customerId}")
+	@PutMapping(CUSTOMER_PATH_ID)
 	public ResponseEntity<String> updateCustomerById(
 					@PathVariable("customerId") UUID id,
 					@RequestBody Customer customer) {
@@ -54,13 +55,13 @@ public class CustomerController {
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
-	@DeleteMapping("{customerId}")
+	@DeleteMapping(CUSTOMER_PATH_ID)
 	public ResponseEntity<String> deleteCustomerById(@PathVariable("customerId") UUID id) {
 		customerService.deleteCustomerById(id);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 
-	@PatchMapping("{customerId}")
+	@PatchMapping(CUSTOMER_PATH_ID)
 	public ResponseEntity<String> patchCustomerById(
 		@PathVariable("customerId") UUID id,
 		@RequestBody Customer customer) {
