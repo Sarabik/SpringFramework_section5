@@ -15,12 +15,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.springframework.section5.controller.CustomerController.CUSTOMER_PATH;
 import static com.springframework.section5.controller.CustomerController.CUSTOMER_PATH_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,7 +79,7 @@ class CustomerControllerTest {
 
 	@Test
 	void getCustomerById() throws Exception {
-		when(customerService.getCustomerById(customer.getId())).thenReturn(customer);
+		when(customerService.getCustomerById(customer.getId())).thenReturn(Optional.of(customer));
 
 		mockMvc.perform(
 			get(CUSTOMER_PATH_ID, customer.getId())
@@ -86,6 +88,16 @@ class CustomerControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath("$.id", is(customer.getId().toString())));
+	}
+
+	@Test
+	void customerByIdNotFound() throws Exception {
+		when(customerService.getCustomerById(any(UUID.class))).thenReturn(Optional.empty());
+
+		mockMvc.perform(get(CUSTOMER_PATH_ID, UUID.randomUUID()))
+			.andExpect(status().isNotFound())
+			.andExpect(result ->
+				assertInstanceOf(NotFoundException.class, result.getResolvedException()));
 	}
 
 	@Test

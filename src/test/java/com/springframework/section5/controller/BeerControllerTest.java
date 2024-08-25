@@ -15,12 +15,17 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.springframework.section5.controller.BeerController.BEER_PATH;
 import static com.springframework.section5.controller.BeerController.BEER_PATH_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatRuntimeException;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -80,7 +85,7 @@ class BeerControllerTest {
 	@Test
 	void whenSuccessfullyGetBeerById() throws Exception {
 
-		when(beerService.getBeerById(beer.getId())).thenReturn(beer);
+		when(beerService.getBeerById(beer.getId())).thenReturn(Optional.of(beer));
 
 		mockMvc.perform(
 				get(BEER_PATH_ID, beer.getId())
@@ -95,11 +100,12 @@ class BeerControllerTest {
 	@Test
 	void whenBeerByIdNotFound() throws Exception {
 
-		mockMvc.perform(
-				get(BEER_PATH_ID, UUID.randomUUID())
-				.accept(MediaType.APPLICATION_JSON)
-			)
-			.andExpect(status().isNotFound());
+		when(beerService.getBeerById(any(UUID.class))).thenReturn(Optional.empty());
+
+		mockMvc.perform(get(BEER_PATH_ID, UUID.randomUUID()))
+			.andExpect(status().isNotFound())
+			.andExpect(result ->
+				assertInstanceOf(NotFoundException.class, result.getResolvedException()));
 	}
 
 	@Test

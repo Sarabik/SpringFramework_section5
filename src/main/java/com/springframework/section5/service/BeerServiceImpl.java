@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -71,9 +72,9 @@ public class BeerServiceImpl implements BeerService {
 	}
 
 	@Override
-	public Beer getBeerById(final UUID id) {
+	public Optional<Beer> getBeerById(final UUID id) {
 		log.debug("Using getBeerById method - in BeerServiceImpl");
-		return beerMap.get(id);
+		return Optional.of(beerMap.get(id));
 	}
 
 	@Override
