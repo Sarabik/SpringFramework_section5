@@ -1,6 +1,6 @@
 package com.springframework.section5.service;
 
-import com.springframework.section5.model.Customer;
+import com.springframework.section5.dto.CustomerDto;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -15,12 +15,12 @@ import java.util.UUID;
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
-	private final Map<UUID, Customer> customerMap;
+	private final Map<UUID, CustomerDto> customerMap;
 
 	public CustomerServiceImpl() {
 		this.customerMap = new HashMap<>();
 
-		Customer customer1 = Customer.builder()
+		CustomerDto customerDto1 = CustomerDto.builder()
 			.id(UUID.randomUUID())
 			.customerName("name1")
 			.version(5)
@@ -28,7 +28,7 @@ public class CustomerServiceImpl implements CustomerService {
 			.lastModifiedDate(LocalDateTime.now())
 			.build();
 
-		Customer customer2 = Customer.builder()
+		CustomerDto customerDto2 = CustomerDto.builder()
 			.id(UUID.randomUUID())
 			.customerName("name2")
 			.version(6)
@@ -36,7 +36,7 @@ public class CustomerServiceImpl implements CustomerService {
 			.lastModifiedDate(LocalDateTime.now())
 			.build();
 
-		Customer customer3 = Customer.builder()
+		CustomerDto customerDto3 = CustomerDto.builder()
 			.id(UUID.randomUUID())
 			.customerName("name3")
 			.version(7)
@@ -44,36 +44,36 @@ public class CustomerServiceImpl implements CustomerService {
 			.lastModifiedDate(LocalDateTime.now())
 			.build();
 
-		customerMap.put(customer1.getId(), customer1);
-		customerMap.put(customer2.getId(), customer2);
-		customerMap.put(customer3.getId(), customer3);
+		customerMap.put(customerDto1.getId(), customerDto1);
+		customerMap.put(customerDto2.getId(), customerDto2);
+		customerMap.put(customerDto3.getId(), customerDto3);
 	}
 
 	@Override
-	public List<Customer> findAllCustomers() {
+	public List<CustomerDto> findAllCustomers() {
 		return new ArrayList<>(customerMap.values());
 	}
 
 	@Override
-	public Optional<Customer> getCustomerById(final UUID id) {
+	public Optional<CustomerDto> getCustomerById(final UUID id) {
 		return Optional.of(customerMap.get(id));
 	}
 
 	@Override
-	public Customer saveCustomer(final Customer customer) {
+	public CustomerDto saveCustomer(final CustomerDto customerDto) {
 		UUID id = UUID.randomUUID();
-		customer.setId(id);
-		customerMap.putIfAbsent(id, customer);
-		return customer;
+		customerDto.setId(id);
+		customerMap.putIfAbsent(id, customerDto);
+		return customerDto;
 	}
 
 	@Override
-	public void updateCustomerById(final UUID id, final Customer customer) {
-		Customer existingCustomer = customerMap.get(id);
-		existingCustomer.setCustomerName(customer.getCustomerName());
-		existingCustomer.setVersion(customer.getVersion());
-		existingCustomer.setCreatedDate(customer.getCreatedDate());
-		existingCustomer.setLastModifiedDate(customer.getLastModifiedDate());
+	public void updateCustomerById(final UUID id, final CustomerDto customerDto) {
+		CustomerDto existingCustomerDto = customerMap.get(id);
+		existingCustomerDto.setCustomerName(customerDto.getCustomerName());
+		existingCustomerDto.setVersion(customerDto.getVersion());
+		existingCustomerDto.setCreatedDate(customerDto.getCreatedDate());
+		existingCustomerDto.setLastModifiedDate(customerDto.getLastModifiedDate());
 	}
 
 	@Override
@@ -82,19 +82,19 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	@Override
-	public void patchCustomerById(final UUID id, final Customer customer) {
-		Customer existingCustomer = customerMap.get(id);
-		if (StringUtils.hasText(customer.getCustomerName())) {
-			existingCustomer.setCustomerName(customer.getCustomerName());
+	public void patchCustomerById(final UUID id, final CustomerDto customerDto) {
+		CustomerDto existingCustomerDto = customerMap.get(id);
+		if (StringUtils.hasText(customerDto.getCustomerName())) {
+			existingCustomerDto.setCustomerName(customerDto.getCustomerName());
 		}
-		if (customer.getCreatedDate() != null) {
-			existingCustomer.setCreatedDate(customer.getCreatedDate());
+		if (customerDto.getCreatedDate() != null) {
+			existingCustomerDto.setCreatedDate(customerDto.getCreatedDate());
 		}
-		if (customer.getLastModifiedDate() != null) {
-			existingCustomer.setLastModifiedDate(customer.getLastModifiedDate());
+		if (customerDto.getLastModifiedDate() != null) {
+			existingCustomerDto.setLastModifiedDate(customerDto.getLastModifiedDate());
 		}
-		if (customer.getVersion() != null) {
-			existingCustomer.setVersion(customer.getVersion());
+		if (customerDto.getVersion() != null) {
+			existingCustomerDto.setVersion(customerDto.getVersion());
 		}
 	}
 }

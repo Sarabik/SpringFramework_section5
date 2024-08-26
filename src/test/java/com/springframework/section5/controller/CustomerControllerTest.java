@@ -1,7 +1,7 @@
 package com.springframework.section5.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.springframework.section5.model.Customer;
+import com.springframework.section5.dto.CustomerDto;
 import com.springframework.section5.service.CustomerService;
 import com.springframework.section5.service.CustomerServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,13 +40,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(CustomerController.class)
 class CustomerControllerTest {
 
-	List<Customer> list;
-	Customer customer;
+	List<CustomerDto> list;
+	CustomerDto customerDto;
 
 	@BeforeEach
 	void setUp() {
 		list = new CustomerServiceImpl().findAllCustomers();
-		customer = list.get(0);
+		customerDto = list.get(0);
 	}
 
 	@Autowired
@@ -62,7 +62,7 @@ class CustomerControllerTest {
 	ArgumentCaptor<UUID> captorUUID = ArgumentCaptor.forClass(UUID.class);
 
 	@Captor
-	ArgumentCaptor<Customer> captorCustomer = ArgumentCaptor.forClass(Customer.class);
+	ArgumentCaptor<CustomerDto> captorCustomer = ArgumentCaptor.forClass(CustomerDto.class);
 
 	@Test
 	void findAllCustomers() throws Exception {
@@ -79,15 +79,15 @@ class CustomerControllerTest {
 
 	@Test
 	void getCustomerById() throws Exception {
-		when(customerService.getCustomerById(customer.getId())).thenReturn(Optional.of(customer));
+		when(customerService.getCustomerById(customerDto.getId())).thenReturn(Optional.of(customerDto));
 
 		mockMvc.perform(
-			get(CUSTOMER_PATH_ID, customer.getId())
+			get(CUSTOMER_PATH_ID, customerDto.getId())
 				.accept(MediaType.APPLICATION_JSON)
 		)
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.id", is(customer.getId().toString())));
+			.andExpect(jsonPath("$.id", is(customerDto.getId().toString())));
 	}
 
 	@Test
@@ -102,12 +102,12 @@ class CustomerControllerTest {
 
 	@Test
 	void handlePost() throws Exception {
-		when(customerService.saveCustomer(any(Customer.class))).thenReturn(customer);
+		when(customerService.saveCustomer(any(CustomerDto.class))).thenReturn(customerDto);
 
 		mockMvc.perform(
 			post(CUSTOMER_PATH)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(customer))
+				.content(objectMapper.writeValueAsString(customerDto))
 		)
 			.andExpect(status().isCreated())
 			.andExpect(header().exists("Location"));
@@ -116,47 +116,47 @@ class CustomerControllerTest {
 	@Test
 	void updateCustomerById() throws Exception {
 		mockMvc.perform(
-			put(CUSTOMER_PATH_ID, customer.getId())
+			put(CUSTOMER_PATH_ID, customerDto.getId())
 				.accept(MediaType.APPLICATION_JSON)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(customer))
+				.content(objectMapper.writeValueAsString(customerDto))
 		)
 			.andExpect(status().isNoContent());
 
 		verify(customerService, times(1))
-						.updateCustomerById(any(UUID.class), any(Customer.class));
+						.updateCustomerById(any(UUID.class), any(CustomerDto.class));
 	}
 
 	@Test
 	void deleteCustomerById() throws Exception {
 		mockMvc.perform(
-			delete(CUSTOMER_PATH_ID, customer.getId())
+			delete(CUSTOMER_PATH_ID, customerDto.getId())
 				.accept(MediaType.APPLICATION_JSON)
 		)
 			.andExpect(status().isNoContent());
 
 		verify(customerService, times(1)).deleteCustomerById(captorUUID.capture());
-		assertThat(customer.getId()).isEqualTo(captorUUID.getValue());
+		assertThat(customerDto.getId()).isEqualTo(captorUUID.getValue());
 	}
 
 	@Test
 	void patchCustomerById() throws Exception {
 
-		Customer newCustomer = new Customer();
-		newCustomer.setId(customer.getId());
-		newCustomer.setCustomerName("new name");
+		CustomerDto newCustomerDto = new CustomerDto();
+		newCustomerDto.setId(customerDto.getId());
+		newCustomerDto.setCustomerName("new name");
 
 		mockMvc.perform(
-			patch(CUSTOMER_PATH_ID, customer.getId())
+			patch(CUSTOMER_PATH_ID, customerDto.getId())
 				.accept(MediaType.APPLICATION_JSON)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(newCustomer))
+				.content(objectMapper.writeValueAsString(newCustomerDto))
 		)
 			.andExpect(status().isNoContent());
 
 		verify(customerService, times(1))
 								.patchCustomerById(captorUUID.capture(), captorCustomer.capture());
-		assertThat(newCustomer.getId()).isEqualTo(captorUUID.getValue());
-		assertThat(newCustomer.getCustomerName()).isEqualTo(captorCustomer.getValue().getCustomerName());
+		assertThat(newCustomerDto.getId()).isEqualTo(captorUUID.getValue());
+		assertThat(newCustomerDto.getCustomerName()).isEqualTo(captorCustomer.getValue().getCustomerName());
 	}
 }

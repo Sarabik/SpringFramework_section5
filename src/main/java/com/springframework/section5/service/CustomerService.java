@@ -1,6 +1,6 @@
 package com.springframework.section5.service;
 
-import com.springframework.section5.model.Customer;
+import com.springframework.section5.dto.CustomerDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,15 +8,15 @@ import java.util.UUID;
 
 public interface CustomerService {
 
-	List<Customer> findAllCustomers();
+	List<CustomerDto> findAllCustomers();
 
-	Optional<Customer> getCustomerById(UUID id);
+	Optional<CustomerDto> getCustomerById(UUID id);
 
-	Customer saveCustomer(Customer customer);
+	CustomerDto saveCustomer(CustomerDto customerDto);
 
-	void updateCustomerById(UUID id, Customer customer);
+	void updateCustomerById(UUID id, CustomerDto customerDto);
 
 	void deleteCustomerById(UUID id);
 
-	void patchCustomerById(UUID id, Customer customer);
+	void patchCustomerById(UUID id, CustomerDto customerDto);
 }

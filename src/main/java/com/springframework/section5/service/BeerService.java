@@ -1,6 +1,6 @@
 package com.springframework.section5.service;
 
-import com.springframework.section5.model.Beer;
+import com.springframework.section5.dto.BeerDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,15 +8,15 @@ import java.util.UUID;
 
 public interface BeerService {
 
-	List<Beer> listBeers();
+	List<BeerDto> listBeers();
 
-	Optional<Beer> getBeerById(UUID id);
+	Optional<BeerDto> getBeerById(UUID id);
 
-	Beer saveBeer(Beer beer);
+	BeerDto saveBeer(BeerDto beerDto);
 
-	void updateBeerById(UUID id, Beer beer);
+	void updateBeerById(UUID id, BeerDto beerDto);
 
 	void deleteBeerById(UUID id);
 
-	void patchBeerById(UUID id, Beer beer);
+	void patchBeerById(UUID id, BeerDto beerDto);
 }

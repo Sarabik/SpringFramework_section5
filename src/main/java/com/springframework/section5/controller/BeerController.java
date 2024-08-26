@@ -1,6 +1,6 @@
 package com.springframework.section5.controller;
 
-import com.springframework.section5.model.Beer;
+import com.springframework.section5.dto.BeerDto;
 import com.springframework.section5.service.BeerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +8,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,23 +30,23 @@ public class BeerController {
 	private final BeerService beerService;
 
 	@PostMapping(BEER_PATH)
-	public ResponseEntity<String> handlePost(@RequestBody Beer beer) {
-		Beer savedBeer = beerService.saveBeer(beer);
+	public ResponseEntity<String> handlePost(@RequestBody BeerDto beerDto) {
+		BeerDto savedBeerDto = beerService.saveBeer(beerDto);
 
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("Location", "/api/v1/beer/" + savedBeer.getId().toString());
+		headers.add("Location", "/api/v1/beerDto/" + savedBeerDto.getId().toString());
 
 		return new ResponseEntity<>(headers, HttpStatus.CREATED);
 	}
 
 	@GetMapping(BEER_PATH)
-	public ResponseEntity<List<Beer>> listBeers() {
+	public ResponseEntity<List<BeerDto>> listBeers() {
 		log.debug("Using listBeers method - in BeerController");
 		return new ResponseEntity<>(beerService.listBeers(), HttpStatus.OK);
 	}
 
 	@GetMapping(BEER_PATH_ID)
-	public Beer getBeerById(@PathVariable("beerId") UUID id) {
+	public BeerDto getBeerById(@PathVariable("beerId") UUID id) {
 		log.debug("Using getBeerById method - in BeerController");
 		return beerService.getBeerById(id).orElseThrow(NotFoundException::new);
 	}
@@ -55,8 +54,9 @@ public class BeerController {
 	@PutMapping(BEER_PATH_ID)
 	public ResponseEntity<String> updateBeerById(
 					@PathVariable("beerId") UUID id,
-					@RequestBody Beer beer) {
-		beerService.updateBeerById(id, beer);
+					@RequestBody BeerDto beerDto
+	) {
+		beerService.updateBeerById(id, beerDto);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
@@ -69,8 +69,9 @@ public class BeerController {
 	@PatchMapping(BEER_PATH_ID)
 	public ResponseEntity<String> patchBeerById(
 		@PathVariable("beerId") UUID id,
-		@RequestBody Beer beer) {
-		beerService.patchBeerById(id, beer);
+		@RequestBody BeerDto beerDto
+	) {
+		beerService.patchBeerById(id, beerDto);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 }

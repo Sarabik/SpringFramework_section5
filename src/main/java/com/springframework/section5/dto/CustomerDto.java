@@ -1,4 +1,4 @@
-package com.springframework.section5.model;
+package com.springframework.section5.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Customer {
+public class CustomerDto {
 	private UUID id;
 	private String customerName;
 	private Integer version;

@@ -1,6 +1,6 @@
 package com.springframework.section5.controller;
 
-import com.springframework.section5.model.Customer;
+import com.springframework.section5.dto.CustomerDto;
 import com.springframework.section5.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -28,21 +28,21 @@ public class CustomerController {
 	private final CustomerService customerService;
 
 	@GetMapping(CUSTOMER_PATH)
-	public List<Customer> findAllCustomers() {
+	public List<CustomerDto> findAllCustomers() {
 		return customerService.findAllCustomers();
 	}
 
 	@GetMapping(CUSTOMER_PATH_ID)
-	public Customer getCustomerById(@PathVariable("customerId") final UUID id) {
+	public CustomerDto getCustomerById(@PathVariable("customerId") final UUID id) {
 		return customerService.getCustomerById(id).orElseThrow(NotFoundException::new);
 	}
 
 	@PostMapping(CUSTOMER_PATH)
-	public ResponseEntity<String> handlePost(@RequestBody Customer customer) {
-		Customer savedCustomer = customerService.saveCustomer(customer);
+	public ResponseEntity<String> handlePost(@RequestBody CustomerDto customerDto) {
+		CustomerDto savedCustomerDto = customerService.saveCustomer(customerDto);
 
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("Location", "/api/v1/customer/" + savedCustomer.getId().toString());
+		headers.add("Location", "/api/v1/customerDto/" + savedCustomerDto.getId().toString());
 
 		return new ResponseEntity<>(headers, HttpStatus.CREATED);
 	}
@@ -50,8 +50,9 @@ public class CustomerController {
 	@PutMapping(CUSTOMER_PATH_ID)
 	public ResponseEntity<String> updateCustomerById(
 					@PathVariable("customerId") UUID id,
-					@RequestBody Customer customer) {
-		customerService.updateCustomerById(id, customer);
+					@RequestBody CustomerDto customerDto
+	) {
+		customerService.updateCustomerById(id, customerDto);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
@@ -64,8 +65,9 @@ public class CustomerController {
 	@PatchMapping(CUSTOMER_PATH_ID)
 	public ResponseEntity<String> patchCustomerById(
 		@PathVariable("customerId") UUID id,
-		@RequestBody Customer customer) {
-		customerService.patchCustomerById(id, customer);
+		@RequestBody CustomerDto customerDto
+	) {
+		customerService.patchCustomerById(id, customerDto);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 }
