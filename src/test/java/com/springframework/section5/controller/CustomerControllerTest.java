@@ -14,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,8 +46,29 @@ class CustomerControllerTest {
 
 	@BeforeEach
 	void setUp() {
-		list = new CustomerServiceImpl().findAllCustomers();
-		customerDto = list.get(0);
+		CustomerDto customerDto1 = CustomerDto.builder()
+			.id(UUID.randomUUID())
+			.customerName("name1")
+			.createdDate(LocalDateTime.now())
+			.lastModifiedDate(LocalDateTime.now())
+			.build();
+
+		CustomerDto customerDto2 = CustomerDto.builder()
+			.id(UUID.randomUUID())
+			.customerName("name2")
+			.createdDate(LocalDateTime.now())
+			.lastModifiedDate(LocalDateTime.now())
+			.build();
+
+		CustomerDto customerDto3 = CustomerDto.builder()
+			.id(UUID.randomUUID())
+			.customerName("name3")
+			.createdDate(LocalDateTime.now())
+			.lastModifiedDate(LocalDateTime.now())
+			.build();
+
+		list = List.of(customerDto1, customerDto2, customerDto3);
+		customerDto = customerDto1;
 	}
 
 	@Autowired
@@ -79,7 +101,7 @@ class CustomerControllerTest {
 
 	@Test
 	void getCustomerById() throws Exception {
-		when(customerService.getCustomerById(customerDto.getId())).thenReturn(Optional.of(customerDto));
+		when(customerService.getCustomerById(customerDto.getId())).thenReturn(customerDto);
 
 		mockMvc.perform(
 			get(CUSTOMER_PATH_ID, customerDto.getId())
@@ -92,7 +114,7 @@ class CustomerControllerTest {
 
 	@Test
 	void customerByIdNotFound() throws Exception {
-		when(customerService.getCustomerById(any(UUID.class))).thenReturn(Optional.empty());
+		when(customerService.getCustomerById(any(UUID.class))).thenThrow(new NotFoundException());
 
 		mockMvc.perform(get(CUSTOMER_PATH_ID, UUID.randomUUID()))
 			.andExpect(status().isNotFound())

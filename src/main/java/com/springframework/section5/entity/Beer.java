@@ -1,6 +1,5 @@
 package com.springframework.section5.entity;
 
-import com.springframework.section5.dto.BeerStyle;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
@@ -23,6 +23,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 @Entity
 public class Beer {
 	@Id

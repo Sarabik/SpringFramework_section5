@@ -40,15 +40,15 @@ public class BeerController {
 	}
 
 	@GetMapping(BEER_PATH)
-	public ResponseEntity<List<BeerDto>> listBeers() {
+	public List<BeerDto> listBeers() {
 		log.debug("Using listBeers method - in BeerController");
-		return new ResponseEntity<>(beerService.listBeers(), HttpStatus.OK);
+		return beerService.listBeers();
 	}
 
 	@GetMapping(BEER_PATH_ID)
 	public BeerDto getBeerById(@PathVariable("beerId") UUID id) {
 		log.debug("Using getBeerById method - in BeerController");
-		return beerService.getBeerById(id).orElseThrow(NotFoundException::new);
+		return beerService.getBeerById(id);
 	}
 
 	@PutMapping(BEER_PATH_ID)

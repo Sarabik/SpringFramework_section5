@@ -1,100 +1,79 @@
 package com.springframework.section5.service;
 
+import com.springframework.section5.controller.NotFoundException;
 import com.springframework.section5.dto.CustomerDto;
+import com.springframework.section5.entity.Customer;
+import com.springframework.section5.mapper.CustomerMapper;
+import com.springframework.section5.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
-	private final Map<UUID, CustomerDto> customerMap;
+	private final CustomerRepository customerRepository;
 
-	public CustomerServiceImpl() {
-		this.customerMap = new HashMap<>();
+	private final CustomerMapper customerMapper;
 
-		CustomerDto customerDto1 = CustomerDto.builder()
-			.id(UUID.randomUUID())
-			.customerName("name1")
-			.version(5)
-			.createdDate(LocalDateTime.now())
-			.lastModifiedDate(LocalDateTime.now())
-			.build();
-
-		CustomerDto customerDto2 = CustomerDto.builder()
-			.id(UUID.randomUUID())
-			.customerName("name2")
-			.version(6)
-			.createdDate(LocalDateTime.now())
-			.lastModifiedDate(LocalDateTime.now())
-			.build();
-
-		CustomerDto customerDto3 = CustomerDto.builder()
-			.id(UUID.randomUUID())
-			.customerName("name3")
-			.version(7)
-			.createdDate(LocalDateTime.now())
-			.lastModifiedDate(LocalDateTime.now())
-			.build();
-
-		customerMap.put(customerDto1.getId(), customerDto1);
-		customerMap.put(customerDto2.getId(), customerDto2);
-		customerMap.put(customerDto3.getId(), customerDto3);
+	public CustomerServiceImpl(final CustomerRepository customerRepository, final CustomerMapper customerMapper) {
+		this.customerRepository = customerRepository;
+		this.customerMapper = customerMapper;
 	}
 
 	@Override
 	public List<CustomerDto> findAllCustomers() {
-		return new ArrayList<>(customerMap.values());
+		return customerRepository.findAll().stream().map(customerMapper::customerToCustomerDto).toList();
 	}
 
 	@Override
-	public Optional<CustomerDto> getCustomerById(final UUID id) {
-		return Optional.of(customerMap.get(id));
+	public CustomerDto getCustomerById(final UUID id) {
+		Customer customer = getCustomer(id);
+		return customerMapper.customerToCustomerDto(customer);
 	}
 
 	@Override
 	public CustomerDto saveCustomer(final CustomerDto customerDto) {
-		UUID id = UUID.randomUUID();
-		customerDto.setId(id);
-		customerMap.putIfAbsent(id, customerDto);
-		return customerDto;
+		Customer saved = customerRepository.save(customerMapper.customerDtoToCustomer(customerDto));
+		return customerMapper.customerToCustomerDto(saved);
 	}
 
 	@Override
 	public void updateCustomerById(final UUID id, final CustomerDto customerDto) {
-		CustomerDto existingCustomerDto = customerMap.get(id);
-		existingCustomerDto.setCustomerName(customerDto.getCustomerName());
-		existingCustomerDto.setVersion(customerDto.getVersion());
-		existingCustomerDto.setCreatedDate(customerDto.getCreatedDate());
-		existingCustomerDto.setLastModifiedDate(customerDto.getLastModifiedDate());
+		Customer newCustomer = customerMapper.customerDtoToCustomer(customerDto);
+		Customer existingCustomer = getCustomer(id);
+		existingCustomer.setCustomerName(newCustomer.getCustomerName());
+		existingCustomer.setCreatedDate(newCustomer.getCreatedDate());
+		existingCustomer.setLastModifiedDate(newCustomer.getLastModifiedDate());
 	}
 
 	@Override
 	public void deleteCustomerById(final UUID id) {
-		customerMap.remove(id);
+		if(!customerRepository.existsById(id)) {
+			throw new NotFoundException();
+		}
+		customerRepository.deleteById(id);
 	}
 
 	@Override
 	public void patchCustomerById(final UUID id, final CustomerDto customerDto) {
-		CustomerDto existingCustomerDto = customerMap.get(id);
-		if (StringUtils.hasText(customerDto.getCustomerName())) {
-			existingCustomerDto.setCustomerName(customerDto.getCustomerName());
+		Customer newCustomer = customerMapper.customerDtoToCustomer(customerDto);
+		Customer existingCustomer = getCustomer(id);
+		if (StringUtils.hasText(newCustomer.getCustomerName())) {
+			existingCustomer.setCustomerName(newCustomer.getCustomerName());
 		}
-		if (customerDto.getCreatedDate() != null) {
-			existingCustomerDto.setCreatedDate(customerDto.getCreatedDate());
+		if (newCustomer.getCreatedDate() != null) {
+			existingCustomer.setCreatedDate(customerDto.getCreatedDate());
 		}
-		if (customerDto.getLastModifiedDate() != null) {
-			existingCustomerDto.setLastModifiedDate(customerDto.getLastModifiedDate());
+		if (newCustomer.getLastModifiedDate() != null) {
+			existingCustomer.setLastModifiedDate(customerDto.getLastModifiedDate());
 		}
-		if (customerDto.getVersion() != null) {
-			existingCustomerDto.setVersion(customerDto.getVersion());
-		}
+		customerRepository.save(existingCustomer);
+	}
+
+	private Customer getCustomer(UUID id) {
+		return customerRepository.findById(id).orElseThrow(NotFoundException::new);
 	}
 }

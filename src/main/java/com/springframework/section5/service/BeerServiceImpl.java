@@ -1,17 +1,18 @@
 package com.springframework.section5.service;
 
+import com.springframework.section5.controller.NotFoundException;
 import com.springframework.section5.dto.BeerDto;
-import com.springframework.section5.dto.BeerStyle;
+import com.springframework.section5.entity.BeerStyle;
+import com.springframework.section5.entity.Beer;
+import com.springframework.section5.mapper.BeerMapper;
+import com.springframework.section5.repository.BeerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,117 +20,92 @@ import java.util.UUID;
 @Slf4j
 public class BeerServiceImpl implements BeerService {
 
-	private final Map<UUID, BeerDto> beerMap;
+	private final BeerMapper beerMapper;
 
-	public BeerServiceImpl() {
-		this.beerMap = new HashMap<>();
+	private final BeerRepository beerRepository;
 
-		BeerDto beerDto1 = BeerDto.builder()
-			.id(UUID.randomUUID())
-			.version(1)
-			.beerName("Galaxy Cat")
-			.beerStyle(BeerStyle.PALE_ALE)
-			.upc("12356")
-			.price(new BigDecimal("12.99"))
-			.quantityOnHand(122)
-			.createdDate(LocalDateTime.now())
-			.updateDate(LocalDateTime.now())
-			.build();
-
-		BeerDto beerDto2 = BeerDto.builder()
-			.id(UUID.randomUUID())
-			.version(1)
-			.beerName("Crank")
-			.beerStyle(BeerStyle.PALE_ALE)
-			.upc("12356222")
-			.price(new BigDecimal("11.99"))
-			.quantityOnHand(392)
-			.createdDate(LocalDateTime.now())
-			.updateDate(LocalDateTime.now())
-			.build();
-
-		BeerDto beerDto3 = BeerDto.builder()
-			.id(UUID.randomUUID())
-			.version(1)
-			.beerName("Sunshine City")
-			.beerStyle(BeerStyle.IPA)
-			.upc("12356")
-			.price(new BigDecimal("13.99"))
-			.quantityOnHand(144)
-			.createdDate(LocalDateTime.now())
-			.updateDate(LocalDateTime.now())
-			.build();
-
-		beerMap.put(beerDto1.getId(), beerDto1);
-		beerMap.put(beerDto2.getId(), beerDto2);
-		beerMap.put(beerDto3.getId(), beerDto3);
+	public BeerServiceImpl(
+		final BeerRepository beerRepository,
+		final BeerMapper beerMapper
+	) {
+		this.beerRepository = beerRepository;
+		this.beerMapper = beerMapper;
 	}
 
 	@Override
 	public List<BeerDto> listBeers() {
 		log.debug("Using listBeers method - in BeerServiceImpl");
-		return new ArrayList<>(beerMap.values());
+		return beerRepository.findAll().stream().map(beerMapper::beerToBeerDto).toList();
 	}
 
 	@Override
-	public Optional<BeerDto> getBeerById(final UUID id) {
+	public BeerDto getBeerById(final UUID id) {
 		log.debug("Using getBeerById method - in BeerServiceImpl");
-		return Optional.of(beerMap.get(id));
+		Beer beer = getBeer(id);
+		return beerMapper.beerToBeerDto(beer);
 	}
 
 	@Override
 	public BeerDto saveBeer(final BeerDto beerDto) {
-		UUID id = UUID.randomUUID();
-		beerDto.setId(id);
-		beerMap.putIfAbsent(id, beerDto);
-		return beerDto;
+		Beer saved = beerRepository.save(beerMapper.beerDtoToBeer(beerDto));
+		return beerMapper.beerToBeerDto(saved);
 	}
 
 	@Override
 	public void updateBeerById(final UUID id, final BeerDto beerDto) {
-		BeerDto existingBeerDto = beerMap.get(id);
-		existingBeerDto.setBeerName(beerDto.getBeerName());
-		existingBeerDto.setBeerStyle(beerDto.getBeerStyle());
-		existingBeerDto.setPrice(beerDto.getPrice());
-		existingBeerDto.setUpc(beerDto.getUpc());
-		existingBeerDto.setCreatedDate(beerDto.getCreatedDate());
-		existingBeerDto.setUpdateDate(beerDto.getUpdateDate());
-		existingBeerDto.setVersion(beerDto.getVersion());
-		existingBeerDto.setQuantityOnHand(beerDto.getQuantityOnHand());
+		Beer newBeer = beerMapper.beerDtoToBeer(beerDto);
+		Beer existingBeer = getBeer(id);
+		existingBeer.setBeerName(newBeer.getBeerName());
+		existingBeer.setBeerStyle(newBeer.getBeerStyle());
+		existingBeer.setPrice(newBeer.getPrice());
+		existingBeer.setUpc(newBeer.getUpc());
+		existingBeer.setCreatedDate(newBeer.getCreatedDate());
+		existingBeer.setUpdateDate(newBeer.getUpdateDate());
+		existingBeer.setQuantityOnHand(newBeer.getQuantityOnHand());
+		beerRepository.save(existingBeer);
 	}
 
 	@Override
 	public void deleteBeerById(final UUID id) {
-		beerMap.remove(id);
+		if (!beerRepository.existsById(id)) {
+			throw new NotFoundException();
+		}
+		beerRepository.deleteById(id);
 	}
 
 	@Override
 	public void patchBeerById(final UUID id, final BeerDto beerDto) {
-		BeerDto existingBeerDto = beerMap.get(id);
+		Beer newBeer = beerMapper.beerDtoToBeer(beerDto);
+		Beer existingBeer = getBeer(id);
 
-		if (StringUtils.hasText(beerDto.getBeerName())) {
-			existingBeerDto.setBeerName(beerDto.getBeerName());
+		if (StringUtils.hasText(newBeer.getBeerName())) {
+			existingBeer.setBeerName(newBeer.getBeerName());
 		}
-		if (StringUtils.hasText(beerDto.getUpc())) {
-			existingBeerDto.setUpc(beerDto.getUpc());
+		if (StringUtils.hasText(newBeer.getUpc())) {
+			existingBeer.setUpc(newBeer.getUpc());
 		}
-		if (beerDto.getBeerStyle() != null) {
-			existingBeerDto.setBeerStyle(beerDto.getBeerStyle());
+		if (newBeer.getBeerStyle() != null) {
+			existingBeer.setBeerStyle(newBeer.getBeerStyle());
 		}
-		if (beerDto.getCreatedDate() != null) {
-			existingBeerDto.setUpdateDate(beerDto.getUpdateDate());
+		if (newBeer.getCreatedDate() != null) {
+			existingBeer.setUpdateDate(newBeer.getUpdateDate());
 		}
-		if (beerDto.getUpdateDate() != null) {
-			existingBeerDto.setUpdateDate(beerDto.getUpdateDate());
+		if (newBeer.getUpdateDate() != null) {
+			existingBeer.setUpdateDate(newBeer.getUpdateDate());
 		}
-		if (beerDto.getPrice() != null) {
-			existingBeerDto.setPrice(beerDto.getPrice());
+		if (newBeer.getPrice() != null) {
+			existingBeer.setPrice(newBeer.getPrice());
 		}
-		if (beerDto.getQuantityOnHand() != null) {
-			existingBeerDto.setQuantityOnHand(beerDto.getQuantityOnHand());
+		if (newBeer.getQuantityOnHand() != null) {
+			existingBeer.setQuantityOnHand(newBeer.getQuantityOnHand());
 		}
-		if (beerDto.getVersion() != null) {
-			existingBeerDto.setVersion(beerDto.getVersion());
+		if (newBeer.getVersion() != null) {
+			existingBeer.setVersion(newBeer.getVersion());
 		}
+		beerRepository.save(existingBeer);
+	}
+
+	private Beer getBeer(UUID id) {
+		return beerRepository.findById(id).orElseThrow(NotFoundException::new);
 	}
 }

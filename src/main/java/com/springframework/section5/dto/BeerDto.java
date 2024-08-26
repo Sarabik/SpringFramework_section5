@@ -1,5 +1,6 @@
 package com.springframework.section5.dto;
 
+import com.springframework.section5.entity.BeerStyle;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +16,6 @@ import java.util.UUID;
 @Builder
 public class BeerDto {
 	private UUID id;
-	private Integer version;
 	private String beerName;
 	private BeerStyle beerStyle;
 	private String upc;

@@ -10,7 +10,7 @@ public interface CustomerService {
 
 	List<CustomerDto> findAllCustomers();
 
-	Optional<CustomerDto> getCustomerById(UUID id);
+	CustomerDto getCustomerById(UUID id);
 
 	CustomerDto saveCustomer(CustomerDto customerDto);
 

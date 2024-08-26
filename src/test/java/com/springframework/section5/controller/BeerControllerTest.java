@@ -2,8 +2,11 @@ package com.springframework.section5.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springframework.section5.dto.BeerDto;
+import com.springframework.section5.entity.Beer;
+import com.springframework.section5.entity.BeerStyle;
 import com.springframework.section5.service.BeerService;
 import com.springframework.section5.service.BeerServiceImpl;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -14,6 +17,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,8 +51,41 @@ class BeerControllerTest {
 
 	@BeforeEach
 	void setUp() {
-		list = new BeerServiceImpl().listBeers();
-		beerDto = list.get(0);
+		BeerDto beerDto1 = BeerDto.builder()
+			.id(UUID.randomUUID())
+			.beerName("Galaxy Cat")
+			.beerStyle(BeerStyle.PALE_ALE)
+			.upc("12356")
+			.price(new BigDecimal("12.99"))
+			.quantityOnHand(122)
+			.createdDate(LocalDateTime.now())
+			.updateDate(LocalDateTime.now())
+			.build();
+
+		BeerDto beerDto2 = BeerDto.builder()
+			.id(UUID.randomUUID())
+			.beerName("Crank")
+			.beerStyle(BeerStyle.PALE_ALE)
+			.upc("12356222")
+			.price(new BigDecimal("11.99"))
+			.quantityOnHand(392)
+			.createdDate(LocalDateTime.now())
+			.updateDate(LocalDateTime.now())
+			.build();
+
+		BeerDto beerDto3 = BeerDto.builder()
+			.id(UUID.randomUUID())
+			.beerName("Sunshine City")
+			.beerStyle(BeerStyle.IPA)
+			.upc("12356")
+			.price(new BigDecimal("13.99"))
+			.quantityOnHand(144)
+			.createdDate(LocalDateTime.now())
+			.updateDate(LocalDateTime.now())
+			.build();
+
+		beerDto = beerDto1;
+		list = List.of(beerDto1, beerDto2, beerDto3);
 	}
 
 	@Autowired
@@ -83,7 +121,7 @@ class BeerControllerTest {
 	@Test
 	void whenSuccessfullyGetBeerById() throws Exception {
 
-		when(beerService.getBeerById(beerDto.getId())).thenReturn(Optional.of(beerDto));
+		when(beerService.getBeerById(beerDto.getId())).thenReturn(beerDto);
 
 		mockMvc.perform(
 				get(BEER_PATH_ID, beerDto.getId())
@@ -98,7 +136,7 @@ class BeerControllerTest {
 	@Test
 	void whenBeerByIdNotFound() throws Exception {
 
-		when(beerService.getBeerById(any(UUID.class))).thenReturn(Optional.empty());
+		when(beerService.getBeerById(any(UUID.class))).thenThrow(new NotFoundException());
 
 		mockMvc.perform(get(BEER_PATH_ID, UUID.randomUUID()))
 			.andExpect(status().isNotFound())

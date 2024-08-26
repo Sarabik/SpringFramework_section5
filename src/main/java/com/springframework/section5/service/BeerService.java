@@ -10,7 +10,7 @@ public interface BeerService {
 
 	List<BeerDto> listBeers();
 
-	Optional<BeerDto> getBeerById(UUID id);
+	BeerDto getBeerById(UUID id);
 
 	BeerDto saveBeer(BeerDto beerDto);
 
