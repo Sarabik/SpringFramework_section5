@@ -1,12 +1,10 @@
 package com.springframework.section5.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springframework.section5.dto.BeerDto;
-import com.springframework.section5.entity.Beer;
 import com.springframework.section5.entity.BeerStyle;
 import com.springframework.section5.service.BeerService;
-import com.springframework.section5.service.BeerServiceImpl;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -16,11 +14,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.springframework.section5.controller.BeerController.BEER_PATH;
@@ -28,7 +28,6 @@ import static com.springframework.section5.controller.BeerController.BEER_PATH_I
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -119,6 +118,25 @@ class BeerControllerTest {
 	}
 
 	@Test
+	void testCreateBeerNullRequiredFields() throws Exception {
+		BeerDto dto = new BeerDto();
+
+		when(beerService.saveBeer(any(BeerDto.class))).thenReturn(beerDto);
+
+		MvcResult result = mockMvc.perform(
+				post(BEER_PATH)
+					.accept(MediaType.APPLICATION_JSON)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(objectMapper.writeValueAsString(dto))
+			)
+			.andExpect(status().isBadRequest())
+			.andReturn();
+		String responseBody = result.getResponse().getContentAsString();
+		System.out.println(responseBody);
+		assertThat(responseBody).contains("beerName", "upc", "beerStyle", "price");
+	}
+
+	@Test
 	void whenSuccessfullyGetBeerById() throws Exception {
 
 		when(beerService.getBeerById(beerDto.getId())).thenReturn(beerDto);
@@ -171,6 +189,23 @@ class BeerControllerTest {
 
 		verify(beerService, times(1))
 							.updateBeerById(any(UUID.class), any(BeerDto.class));
+	}
+
+	@Test
+	void testWhenUpdatedBeerHasInvalidFields() throws Exception {
+		BeerDto dto = new BeerDto();
+		dto.setPrice(BigDecimal.valueOf(-0.3));
+		MvcResult result = mockMvc.perform(
+				put(BEER_PATH_ID, beerDto.getId())
+					.accept(MediaType.APPLICATION_JSON)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(objectMapper.writeValueAsString(dto))
+			)
+			.andExpect(status().isBadRequest())
+			.andReturn();
+		String responseBody = result.getResponse().getContentAsString();
+		System.out.println(responseBody);
+		assertThat(responseBody).contains("beerName", "upc", "beerStyle", "price");
 	}
 
 	@Test

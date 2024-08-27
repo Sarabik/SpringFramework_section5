@@ -1,12 +1,14 @@
 package com.springframework.section5.repository;
 
 import com.springframework.section5.entity.Beer;
+import com.springframework.section5.entity.BeerStyle;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,8 +22,8 @@ class BeerRepositoryTest {
 
 	@BeforeAll
 	static void init() {
-		beer1 = Beer.builder().beerName("name1").build();
-		beer2 = Beer.builder().beerName("name2").build();
+		beer1 = Beer.builder().beerName("name1").beerStyle(BeerStyle.LAGER).upc("ttt").price(BigDecimal.valueOf(1)).build();
+		beer2 = Beer.builder().beerName("name2").beerStyle(BeerStyle.LAGER).upc("ttt").price(BigDecimal.valueOf(1)).build();
 	}
 
 	@Autowired
@@ -30,7 +32,7 @@ class BeerRepositoryTest {
 	@Test
 	void testSaveBeer() {
 		Beer savedBeer = beerRepository.save(beer1);
-
+		beerRepository.flush();
 		assertThat(savedBeer).isNotNull();
 		assertThat(savedBeer.getId()).isNotNull();
 		assertThat(savedBeer.getBeerName()).isEqualTo("name1");
