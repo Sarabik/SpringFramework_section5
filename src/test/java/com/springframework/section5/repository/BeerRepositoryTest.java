@@ -60,6 +60,30 @@ class BeerRepositoryTest {
 	}
 
 	@Test
+	void testGetBeerListByName() {
+		Beer saved1 = beerRepository.save(beer1);
+		Beer saved2 = beerRepository.save(beer2);
+		List<Beer> listExpected = List.of(saved1);
+
+		List<Beer> list = beerRepository.findAllByBeerNameIsLikeIgnoreCase("name1");
+
+		assertThat(list.size()).isEqualTo(1);
+		assertThat(list).containsAll(listExpected);
+	}
+
+	@Test
+	void testGetBeerListByContainsPartOfName() {
+		Beer saved1 = beerRepository.save(beer1);
+		Beer saved2 = beerRepository.save(beer2);
+		List<Beer> listExpected = List.of(saved1, saved2);
+
+		List<Beer> list = beerRepository.findAllByBeerNameIsLikeIgnoreCase("%name%");
+
+		assertThat(list.size()).isEqualTo(2);
+		assertThat(list).containsAll(listExpected);
+	}
+
+	@Test
 	void testDeleteBeer() {
 		Beer saved1 = beerRepository.save(beer1);
 		assertThat(beerRepository.count()).isEqualTo(1);

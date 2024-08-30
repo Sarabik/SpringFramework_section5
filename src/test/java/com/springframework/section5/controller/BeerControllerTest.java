@@ -1,6 +1,5 @@
 package com.springframework.section5.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springframework.section5.dto.BeerDto;
 import com.springframework.section5.entity.BeerStyle;
@@ -15,12 +14,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static com.springframework.section5.controller.BeerController.BEER_PATH;
@@ -165,7 +162,7 @@ class BeerControllerTest {
 	@Test
 	void whenSuccessfullyGetListOfBeers() throws Exception {
 
-		when(beerService.listBeers()).thenReturn(list);
+		when(beerService.listBeers(null, null, null)).thenReturn(list);
 
 		mockMvc.perform(
 			get(BEER_PATH)

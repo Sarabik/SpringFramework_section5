@@ -10,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -33,9 +30,35 @@ public class BeerServiceImpl implements BeerService {
 	}
 
 	@Override
-	public List<BeerDto> listBeers() {
+	public List<BeerDto> listBeers(String beerName, BeerStyle beerStyle, final Boolean showInventory) {
 		log.debug("Using listBeers method - in BeerServiceImpl");
-		return beerRepository.findAll().stream().map(beerMapper::beerToBeerDto).toList();
+
+		List<Beer> beerList;
+		if(StringUtils.hasText(beerName) && beerStyle == null) {
+			beerList = listBeersByName(beerName);
+		} else if(!StringUtils.hasText(beerName) && beerStyle != null) {
+			beerList = listBeersByStyle(beerStyle);
+		} else if(StringUtils.hasText(beerName) && beerStyle != null) {
+			beerList = listBeersByNameAndStyle(beerName, beerStyle);
+		} else {
+			beerList = beerRepository.findAll();
+		}
+		if (showInventory != null && !showInventory) {
+			beerList.forEach(beer -> beer.setQuantityOnHand(null));
+		}
+		return beerList.stream().map(beerMapper::beerToBeerDto).toList();
+	}
+
+	private List<Beer> listBeersByNameAndStyle(final String beerName, final BeerStyle beerStyle) {
+		return beerRepository.findAllByBeerNameIsLikeIgnoreCaseAndBeerStyle("%" + beerName + "%", beerStyle);
+	}
+
+	private List<Beer> listBeersByName(String beerName) {
+		return beerRepository.findAllByBeerNameIsLikeIgnoreCase("%" + beerName + "%");
+	}
+
+	private List<Beer> listBeersByStyle(BeerStyle beerStyle) {
+		return beerRepository.findAllByBeerStyle(beerStyle);
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.springframework.section5.controller;
 
 import com.springframework.section5.dto.BeerDto;
+import com.springframework.section5.entity.BeerStyle;
 import com.springframework.section5.service.BeerService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -42,9 +44,12 @@ public class BeerController {
 	}
 
 	@GetMapping(BEER_PATH)
-	public List<BeerDto> listBeers() {
+	public List<BeerDto> listBeers(@RequestParam(required = false) String beerName,
+									@RequestParam(required = false) BeerStyle beerStyle,
+									@RequestParam(required = false) Boolean showInventory
+	) {
 		log.debug("Using listBeers method - in BeerController");
-		return beerService.listBeers();
+		return beerService.listBeers(beerName, beerStyle, showInventory);
 	}
 
 	@GetMapping(BEER_PATH_ID)
