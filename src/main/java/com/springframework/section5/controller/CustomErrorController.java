@@ -1,6 +1,5 @@
 package com.springframework.section5.controller;
 
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.TransactionSystemException;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 @ControllerAdvice
@@ -27,12 +25,12 @@ public class CustomErrorController {
 
 	@ExceptionHandler
 	ResponseEntity<Map<String, String>> handleJPAViolations(TransactionSystemException e) {
-		Map<String, String> map = new HashMap<>();
+		Map<String, String> errorMap = new HashMap<>();
 		if (e.getCause().getCause() instanceof final ConstraintViolationException exception) {
 			exception.getConstraintViolations().forEach(
-				t -> map.put(t.getPropertyPath().toString(), t.getMessage()));
+				t -> errorMap.put(t.getPropertyPath().toString(), t.getMessage()));
 		}
-		return ResponseEntity.badRequest().body(map);
+		return ResponseEntity.badRequest().body(errorMap);
 	}
 
 }

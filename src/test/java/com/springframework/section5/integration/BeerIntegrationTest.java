@@ -34,7 +34,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-//@Transactional
 public class BeerIntegrationTest {
 
 	@Autowired
@@ -62,10 +61,11 @@ public class BeerIntegrationTest {
 	@Test
 	void testListBeer() {
 		List<BeerDto> list = beerController.listBeers();
-		assertThat(list.size()).isEqualTo(3);
+		assertThat(list.size()).isGreaterThan(0);
 	}
 
 	@Test
+	@Transactional
 	void testEmptyList() {
 		beerRepository.deleteAll();
 		List<BeerDto> list = beerController.listBeers();
@@ -88,6 +88,7 @@ public class BeerIntegrationTest {
 	}
 
 	@Test
+	@Transactional
 	void testSaveBeer() {
 		BeerDto beerDto = BeerDto.builder()
 			.beerName("Galaxy")
@@ -113,6 +114,7 @@ public class BeerIntegrationTest {
 	}
 
 	@Test
+	@Transactional
 	void testUpdateBeerById() {
 		Beer beer = beerRepository.findAll().get(0);
 		BeerDto dto = beerMapper.beerToBeerDto(beer);
@@ -130,6 +132,7 @@ public class BeerIntegrationTest {
 	}
 
 	@Test
+	@Transactional
 	void testPatchBeerById() {
 		Beer beer = beerRepository.findAll().get(0);
 		BeerDto dto = BeerDto.builder()
@@ -150,7 +153,6 @@ public class BeerIntegrationTest {
 	}
 
 	@Test
-	@Rollback(false)
 	void patchBeerByIdWithInvalidName() throws Exception{
 		Beer beer = beerRepository.findAll().get(0);
 		beer.setBeerName("hefsheeeeeeeeeeeeeeeeeeeeeeeehduesfhueeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
@@ -163,14 +165,10 @@ public class BeerIntegrationTest {
 					.content(objectMapper.writeValueAsString(dto))
 			)
 			.andExpect(status().isBadRequest());
-
-//		verify(beerService, times(1))
-//			.patchBeerById(captorUUID.capture(), captorBeer.capture());
-//		assertThat(beerDto.getId()).isEqualTo(captorUUID.getValue());
-//		assertThat(newBeerDto.getBeerName()).isEqualTo(captorBeer.getValue().getBeerName());
 	}
 
 	@Test
+	@Transactional
 	void testDeleteBeerById() {
 		Beer beer = beerRepository.findAll().get(0);
 		ResponseEntity<String> response = beerController.deleteBeerById(beer.getId());

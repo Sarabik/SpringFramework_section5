@@ -11,7 +11,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -28,13 +30,17 @@ public class Customer {
 	@Id
 	@GeneratedValue
 	@UuidGenerator
-	@Column(length = 36, columnDefinition = "varchar", updatable = false, nullable = false)
+	@JdbcTypeCode(SqlTypes.CHAR)
+	@Column(length = 36, columnDefinition = "varchar(36)", updatable = false, nullable = false)
 	private UUID id;
 
 	@Version
 	private Integer version;
 
 	private String customerName;
+
+	@Column(length = 255)
+	private String email;
 	private LocalDateTime createdDate;
 	private LocalDateTime lastModifiedDate;
 
