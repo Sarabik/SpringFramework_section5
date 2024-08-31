@@ -3,6 +3,7 @@ package com.springframework.section5.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springframework.section5.dto.BeerDto;
 import com.springframework.section5.entity.BeerStyle;
+import com.springframework.section5.mapper.BeerMapper;
 import com.springframework.section5.service.BeerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,9 +12,11 @@ import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.data.domain.Page;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -162,7 +165,10 @@ class BeerControllerTest {
 	@Test
 	void whenSuccessfullyGetListOfBeers() throws Exception {
 
-		when(beerService.listBeers(null, null, null)).thenReturn(list);
+		Page<BeerDto> page = new PageImpl<>(list);
+
+		when(beerService.listBeers(null, null, null, null, null))
+			.thenReturn(page);
 
 		mockMvc.perform(
 			get(BEER_PATH)
@@ -170,7 +176,7 @@ class BeerControllerTest {
 			)
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.length()", is(3)));
+			.andExpect(jsonPath("$.totalElements", is(3)));
 
 	}
 

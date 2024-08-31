@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -65,10 +66,10 @@ class BeerRepositoryTest {
 		Beer saved2 = beerRepository.save(beer2);
 		List<Beer> listExpected = List.of(saved1);
 
-		List<Beer> list = beerRepository.findAllByBeerNameIsLikeIgnoreCase("name1");
+		Page<Beer> page = beerRepository.findAllByBeerNameIsLikeIgnoreCase("name1", null);
 
-		assertThat(list.size()).isEqualTo(1);
-		assertThat(list).containsAll(listExpected);
+		assertThat(page.get().count()).isEqualTo(1);
+		assertThat(page).containsAll(listExpected);
 	}
 
 	@Test
@@ -77,10 +78,10 @@ class BeerRepositoryTest {
 		Beer saved2 = beerRepository.save(beer2);
 		List<Beer> listExpected = List.of(saved1, saved2);
 
-		List<Beer> list = beerRepository.findAllByBeerNameIsLikeIgnoreCase("%name%");
+		Page<Beer> page = beerRepository.findAllByBeerNameIsLikeIgnoreCase("%name%", null);
 
-		assertThat(list.size()).isEqualTo(2);
-		assertThat(list).containsAll(listExpected);
+		assertThat(page.get().count()).isEqualTo(2);
+		assertThat(page).containsAll(listExpected);
 	}
 
 	@Test

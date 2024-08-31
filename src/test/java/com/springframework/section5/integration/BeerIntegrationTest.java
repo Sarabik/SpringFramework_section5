@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -64,8 +65,8 @@ public class BeerIntegrationTest {
 
 	@Test
 	void testListBeer() {
-		List<BeerDto> list = beerController.listBeers(null, null, false);
-		assertThat(list.size()).isGreaterThan(0);
+		Page<BeerDto> page = beerController.listBeers(null, null, false, 1, 25);
+		assertThat(page.get().count()).isGreaterThan(0);
 	}
 
 	@Test
@@ -75,7 +76,7 @@ public class BeerIntegrationTest {
 					.queryParam("beerName", "Nonstop Hef Hop")
 			)
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.size()", is(12)));
+			.andExpect(jsonPath("$.totalElements", is(12)));
 	}
 
 	@Test
@@ -85,7 +86,7 @@ public class BeerIntegrationTest {
 					.queryParam("beerStyle", BeerStyle.PILSNER.name())
 			)
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.size()", is(1160)));
+			.andExpect(jsonPath("$.totalElements", is(1160)));
 	}
 
 	@Test
@@ -96,8 +97,8 @@ public class BeerIntegrationTest {
 				.queryParam("beerStyle", BeerStyle.PILSNER.name())
 				.queryParam("showInventory", "true"))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.size()", is(12)))
-			.andExpect(jsonPath("$.[0].quantityOnHand").value(IsNull.notNullValue()));
+			.andExpect(jsonPath("$.totalElements", is(12)))
+			.andExpect(jsonPath("$.content[0].quantityOnHand").value(IsNull.notNullValue()));
 	}
 
 	@Test
@@ -107,15 +108,27 @@ public class BeerIntegrationTest {
 				.queryParam("beerStyle", BeerStyle.PILSNER.name())
 				.queryParam("showInventory", "false"))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.size()", is(12)))
-			.andExpect(jsonPath("$.[0].quantityOnHand").value(IsNull.nullValue()));
+			.andExpect(jsonPath("$.totalElements", is(12)))
+			.andExpect(jsonPath("$.content[0].quantityOnHand").value(IsNull.nullValue()));
+	}
+
+	@Test
+	void testListBeersByStyleAndNameShowInventoryTruePage2() throws Exception {
+		mockMvc.perform(get(BEER_PATH)
+			.queryParam("pageNumber", "2")
+			.queryParam("pageSize", "25")
+		)
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.size", is(25)))
+			.andExpect(jsonPath("$.totalElements", is(2410)))
+			.andExpect(jsonPath("$.content[0].quantityOnHand").value(IsNull.notNullValue()));
 	}
 
 	@Test
 	@Transactional
 	void testEmptyList() {
 		beerRepository.deleteAll();
-		List<BeerDto> list = beerController.listBeers(null, null, false);
+		Page<BeerDto> list = beerController.listBeers(null, null, null, null, null);
 		assertThat(list).isEmpty();
 	}
 
