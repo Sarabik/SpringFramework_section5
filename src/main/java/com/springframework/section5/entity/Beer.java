@@ -2,15 +2,16 @@ package com.springframework.section5.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,15 +29,42 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
 @ToString
 @Entity
 public class Beer {
+
+	public Beer(
+		final UUID id,
+		final Integer version,
+		final String beerName,
+		final BeerStyle beerStyle,
+		final String upc,
+		final Integer quantityOnHand,
+		final BigDecimal price,
+		final LocalDateTime createdDate,
+		final LocalDateTime updateDate,
+		final Set<BeerOrderLine> beerOrderLines,
+		final Set<Category> categories
+	) {
+		this.id = id;
+		this.version = version;
+		this.beerName = beerName;
+		this.beerStyle = beerStyle;
+		this.upc = upc;
+		this.quantityOnHand = quantityOnHand;
+		this.price = price;
+		this.createdDate = createdDate;
+		this.updateDate = updateDate;
+		this.beerOrderLines = beerOrderLines;
+		this.setCategories(categories);
+	}
+
 	@Id
 	@GeneratedValue
 	@UuidGenerator
@@ -74,6 +102,25 @@ public class Beer {
 	@ToString.Exclude
 	@Builder.Default
 	private Set<BeerOrderLine> beerOrderLines = new HashSet<>();
+
+	@ManyToMany(mappedBy = "beers", fetch = FetchType.EAGER)
+	@Builder.Default
+	private Set<Category> categories = new HashSet<>();
+
+	public void setCategories(final Set<Category> categories) {
+		this.categories = categories;
+		categories.forEach(category -> category.addBeer(this));
+	}
+
+	public void addCategory(Category category) {
+		categories.add(category);
+		category.getBeers().add(this);
+	}
+
+	public void removeCategory(Category category) {
+		categories.remove(category);
+		category.getBeers().remove(this);
+	}
 
 	@Override
 	public final boolean equals(final Object o) {
