@@ -1,5 +1,6 @@
 package com.springframework.section5.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -8,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
@@ -24,7 +26,7 @@ import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -45,6 +47,7 @@ public class BeerOrder {
 		final Integer version,
 		final String customerRef,
 		final Customer customer,
+		final BeerOrderShipment beerOrderShipment,
 		final Set<BeerOrderLine> beerOrderLines
 	) {
 		this.id = id;
@@ -53,6 +56,7 @@ public class BeerOrder {
 		this.version = version;
 		this.customerRef = customerRef;
 		this.setCustomer(customer);
+		this.setBeerOrderShipment(beerOrderShipment);
 		this.beerOrderLines = beerOrderLines;
 	}
 
@@ -81,10 +85,18 @@ public class BeerOrder {
 	@JoinColumn(name = "customer_id", nullable = false)
 	private Customer customer;
 
+	@OneToOne(mappedBy = "beerOrder", cascade = CascadeType.PERSIST)
+	private BeerOrderShipment beerOrderShipment;
+
+	public void setBeerOrderShipment(final BeerOrderShipment beerOrderShipment) {
+		this.beerOrderShipment = beerOrderShipment;
+		beerOrderShipment.setBeerOrder(this);
+	}
+
 	@OneToMany(mappedBy = "beerOrder", fetch = FetchType.LAZY)
 	@ToString.Exclude
 	@Builder.Default
-	private Set<BeerOrderLine> beerOrderLines = new LinkedHashSet<>();
+	private Set<BeerOrderLine> beerOrderLines = new HashSet<>();
 
 	public boolean isNew() {
 		return this.id == null;

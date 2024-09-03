@@ -2,6 +2,7 @@ package com.springframework.section5.repository;
 
 import com.springframework.section5.entity.Beer;
 import com.springframework.section5.entity.BeerOrder;
+import com.springframework.section5.entity.BeerOrderShipment;
 import com.springframework.section5.entity.BeerStyle;
 import com.springframework.section5.entity.Customer;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +61,9 @@ class BeerOrderRepositoryTest {
 		BeerOrder beerOrder = new BeerOrder();
 		beerOrder.setCustomerRef("customer reference");
 		beerOrder.setCustomer(customer);
+		beerOrder.setBeerOrderShipment(
+			BeerOrderShipment.builder().trackingNumber("12345").build()
+		);
 
 		BeerOrder savedBeerOrder = beerOrderRepository.save(beerOrder);
 		beerRepository.flush();
