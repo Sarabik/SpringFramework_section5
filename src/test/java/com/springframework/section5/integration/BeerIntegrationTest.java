@@ -1,6 +1,7 @@
 package com.springframework.section5.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.springframework.section5.config.SpringSecurityConfig;
 import com.springframework.section5.controller.BeerController;
 import com.springframework.section5.controller.NotFoundException;
 import com.springframework.section5.dto.BeerDto;
@@ -13,16 +14,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +37,7 @@ import static com.springframework.section5.controller.BeerController.BEER_PATH_I
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -60,7 +65,9 @@ public class BeerIntegrationTest {
 
 	@BeforeEach
 	void setUp() {
-		mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+		mockMvc = MockMvcBuilders.webAppContextSetup(wac)
+			.apply(springSecurity())
+			.build();
 	}
 
 	@Test
@@ -70,6 +77,7 @@ public class BeerIntegrationTest {
 	}
 
 	@Test
+	@WithMockUser(username = "user1", password = "password")
 	void whenGetListOfBeersByName() throws Exception {
 		mockMvc.perform(
 				get(BEER_PATH)
@@ -80,6 +88,15 @@ public class BeerIntegrationTest {
 	}
 
 	@Test
+	void whenGetListOfBeersWithoutAuth() throws Exception {
+		mockMvc.perform(
+				get(BEER_PATH)
+			)
+			.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	@WithMockUser(username = "user1", password = "password")
 	void whenGetListOfBeersByStyle() throws Exception {
 		mockMvc.perform(
 				get(BEER_PATH)
@@ -90,6 +107,7 @@ public class BeerIntegrationTest {
 	}
 
 	@Test
+	@WithMockUser(username = "user1", password = "password")
 	void tesListBeersByStyleAndNameShowInventoryTrue() throws Exception {
 
 		mockMvc.perform(get(BEER_PATH)
@@ -102,6 +120,7 @@ public class BeerIntegrationTest {
 	}
 
 	@Test
+	@WithMockUser(username = "user1", password = "password")
 	void tesListBeersByStyleAndNameShowInventoryFalse() throws Exception {
 		mockMvc.perform(get(BEER_PATH)
 				.queryParam("beerName", "Nonstop Hef Hop")
@@ -113,6 +132,7 @@ public class BeerIntegrationTest {
 	}
 
 	@Test
+	@WithMockUser(username = "user1", password = "password")
 	void testListBeersByStyleAndNameShowInventoryTruePage2() throws Exception {
 		mockMvc.perform(get(BEER_PATH)
 			.queryParam("pageNumber", "2")
@@ -213,6 +233,7 @@ public class BeerIntegrationTest {
 	}
 
 	@Test
+	@WithMockUser(username = "user1", password = "password")
 	void patchBeerByIdWithInvalidName() throws Exception{
 		Beer beer = beerRepository.findAll().get(0);
 		beer.setBeerName("hefsheeeeeeeeeeeeeeeeeeeeeeeehduesfhueeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");

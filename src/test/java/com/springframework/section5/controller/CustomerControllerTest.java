@@ -1,9 +1,9 @@
 package com.springframework.section5.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.springframework.section5.config.SpringSecurityConfig;
 import com.springframework.section5.dto.CustomerDto;
 import com.springframework.section5.service.CustomerService;
-import com.springframework.section5.service.CustomerServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -11,12 +11,13 @@ import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.springframework.section5.controller.CustomerController.CUSTOMER_PATH;
@@ -39,6 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CustomerController.class)
+@WithMockUser(username = "user1", password = "password")
+@Import(SpringSecurityConfig.class)
 class CustomerControllerTest {
 
 	List<CustomerDto> list;
