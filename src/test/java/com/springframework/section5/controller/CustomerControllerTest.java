@@ -13,13 +13,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static com.springframework.section5.controller.BeerControllerTest.jwtRequestPostProcessor;
 import static com.springframework.section5.controller.CustomerController.CUSTOMER_PATH;
 import static com.springframework.section5.controller.CustomerController.CUSTOMER_PATH_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,9 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CustomerController.class)
-@WithMockUser(username = "user1", password = "password")
 @Import(SpringSecurityConfig.class)
-class CustomerControllerTest {
+public class CustomerControllerTest {
 
 	List<CustomerDto> list;
 	CustomerDto customerDto;
@@ -95,6 +94,7 @@ class CustomerControllerTest {
 
 		mockMvc.perform(
 			get(CUSTOMER_PATH)
+				.with(jwtRequestPostProcessor)
 				.accept(MediaType.APPLICATION_JSON)
 		)
 			.andExpect(status().isOk())
@@ -108,6 +108,7 @@ class CustomerControllerTest {
 
 		mockMvc.perform(
 			get(CUSTOMER_PATH_ID, customerDto.getId())
+				.with(jwtRequestPostProcessor)
 				.accept(MediaType.APPLICATION_JSON)
 		)
 			.andExpect(status().isOk())
@@ -119,7 +120,8 @@ class CustomerControllerTest {
 	void customerByIdNotFound() throws Exception {
 		when(customerService.getCustomerById(any(UUID.class))).thenThrow(new NotFoundException());
 
-		mockMvc.perform(get(CUSTOMER_PATH_ID, UUID.randomUUID()))
+		mockMvc.perform(get(CUSTOMER_PATH_ID, UUID.randomUUID())
+				.with(jwtRequestPostProcessor))
 			.andExpect(status().isNotFound())
 			.andExpect(result ->
 				assertInstanceOf(NotFoundException.class, result.getResolvedException()));
@@ -131,6 +133,7 @@ class CustomerControllerTest {
 
 		mockMvc.perform(
 			post(CUSTOMER_PATH)
+				.with(jwtRequestPostProcessor)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(customerDto))
 		)
@@ -142,6 +145,7 @@ class CustomerControllerTest {
 	void updateCustomerById() throws Exception {
 		mockMvc.perform(
 			put(CUSTOMER_PATH_ID, customerDto.getId())
+				.with(jwtRequestPostProcessor)
 				.accept(MediaType.APPLICATION_JSON)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(customerDto))
@@ -156,6 +160,7 @@ class CustomerControllerTest {
 	void deleteCustomerById() throws Exception {
 		mockMvc.perform(
 			delete(CUSTOMER_PATH_ID, customerDto.getId())
+				.with(jwtRequestPostProcessor)
 				.accept(MediaType.APPLICATION_JSON)
 		)
 			.andExpect(status().isNoContent());
@@ -173,6 +178,7 @@ class CustomerControllerTest {
 
 		mockMvc.perform(
 			patch(CUSTOMER_PATH_ID, customerDto.getId())
+				.with(jwtRequestPostProcessor)
 				.accept(MediaType.APPLICATION_JSON)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(newCustomerDto))

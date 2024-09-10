@@ -10,19 +10,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.data.domain.Page;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -36,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -48,18 +48,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(BeerController.class)
 @Import(SpringSecurityConfig.class)
-class BeerControllerTest {
+public class BeerControllerTest {
 
 	List<BeerDto> list;
 	BeerDto beerDto;
 
-	@Value("${spring.security.user.name}")
-	private String name;
-
-	@Value("${spring.security.user.password}")
-	private String password;
-
-	private RequestPostProcessor requestPostProcessor;
+	public static final SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtRequestPostProcessor =
+		jwt().jwt(jwt ->
+			jwt.claims(claims -> {
+					claims.put("scope", "message-read");
+					claims.put("scope", "message-write");
+				})
+				.subject("messaging-client")
+				.notBefore(Instant.now().minusSeconds(5L))
+		);
 
 	@BeforeEach
 	void setUp() {
@@ -98,7 +100,6 @@ class BeerControllerTest {
 
 		beerDto = beerDto1;
 		list = List.of(beerDto1, beerDto2, beerDto3);
-		requestPostProcessor = SecurityMockMvcRequestPostProcessors.httpBasic(name, password);
 	}
 
 	@Autowired
@@ -123,7 +124,7 @@ class BeerControllerTest {
 
 		mockMvc.perform(
 			post(BEER_PATH)
-				.with(requestPostProcessor)
+				.with(jwtRequestPostProcessor)
 				.accept(MediaType.APPLICATION_JSON)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(beerDto))
@@ -140,7 +141,7 @@ class BeerControllerTest {
 
 		MvcResult result = mockMvc.perform(
 				post(BEER_PATH)
-					.with(requestPostProcessor)
+					.with(jwtRequestPostProcessor)
 					.accept(MediaType.APPLICATION_JSON)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(dto))
@@ -159,7 +160,7 @@ class BeerControllerTest {
 
 		mockMvc.perform(
 				get(BEER_PATH_ID, beerDto.getId())
-					.with(requestPostProcessor)
+					.with(jwtRequestPostProcessor)
 				.accept(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(status().isOk())
@@ -174,7 +175,7 @@ class BeerControllerTest {
 		when(beerService.getBeerById(any(UUID.class))).thenThrow(new NotFoundException());
 
 		mockMvc.perform(get(BEER_PATH_ID, UUID.randomUUID())
-				.with(requestPostProcessor))
+				.with(jwtRequestPostProcessor))
 			.andExpect(status().isNotFound())
 			.andExpect(result ->
 				assertInstanceOf(NotFoundException.class, result.getResolvedException()));
@@ -190,7 +191,7 @@ class BeerControllerTest {
 
 		mockMvc.perform(
 			get(BEER_PATH)
-				.with(requestPostProcessor)
+				.with(jwtRequestPostProcessor)
 				.accept(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(status().isOk())
@@ -203,7 +204,7 @@ class BeerControllerTest {
 	void updateBeerById() throws Exception {
 		mockMvc.perform(
 			put(BEER_PATH_ID, beerDto.getId())
-				.with(requestPostProcessor)
+				.with(jwtRequestPostProcessor)
 				.accept(MediaType.APPLICATION_JSON)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(beerDto))
@@ -220,7 +221,7 @@ class BeerControllerTest {
 		dto.setPrice(BigDecimal.valueOf(-0.3));
 		MvcResult result = mockMvc.perform(
 				put(BEER_PATH_ID, beerDto.getId())
-					.with(requestPostProcessor)
+					.with(jwtRequestPostProcessor)
 					.accept(MediaType.APPLICATION_JSON)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(dto))
@@ -236,7 +237,7 @@ class BeerControllerTest {
 	void deleteBeerById() throws Exception {
 		mockMvc.perform(
 			delete(BEER_PATH_ID, beerDto.getId())
-				.with(requestPostProcessor)
+				.with(jwtRequestPostProcessor)
 				.accept(MediaType.APPLICATION_JSON)
 		)
 			.andExpect(status().isNoContent());
@@ -254,7 +255,7 @@ class BeerControllerTest {
 
 		mockMvc.perform(
 				patch(BEER_PATH_ID, newBeerDto.getId())
-					.with(requestPostProcessor)
+					.with(jwtRequestPostProcessor)
 					.accept(MediaType.APPLICATION_JSON)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(newBeerDto))
